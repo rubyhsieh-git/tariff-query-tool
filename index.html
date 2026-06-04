@@ -68,6 +68,56 @@
       margin-bottom: 16px;
     }
 
+    .origin-compare {
+      grid-column: 1 / -1;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+    }
+
+    .origin-compare-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .origin-checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .origin-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: #f8faf9;
+      color: #30343a;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .origin-check:has(input:checked) {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: #07584f;
+    }
+
+    .origin-check input {
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      accent-color: var(--accent);
+    }
+
     .duty-primer {
       display: grid;
       grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
@@ -215,6 +265,27 @@
       padding: 20px;
     }
 
+    .compare-results {
+      display: grid;
+      gap: 14px;
+    }
+
+    .compare-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .compare-card .result-top {
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+    }
+
+    .compare-card .rate {
+      font-size: 21px;
+    }
+
     .result-top {
       display: grid;
       gap: 8px;
@@ -317,7 +388,29 @@
       border-left: 3px solid #2f80ed;
       padding: 10px 12px;
       border-radius: 6px;
-      white-space: pre-line;
+    }
+
+    .us-alert-main {
+      font-weight: 700;
+    }
+
+    .us-alert-rate {
+      font-size: 16px;
+      font-weight: 900;
+      margin-left: 4px;
+    }
+
+    .us-alert-date {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .us-alert-extra {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.45;
     }
 
     .overview {
@@ -427,11 +520,66 @@
       align-items: end;
       justify-content: space-between;
       gap: 12px;
-      margin: 22px 0 10px;
+      margin: 10px 0;
+    }
+
+    .database-wrap {
+      margin-top: 22px;
+    }
+
+    .database-wrap summary {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      color: #184e4a;
+      font-size: 14px;
+      font-weight: 900;
+      list-style: none;
+      user-select: none;
+    }
+
+    .database-wrap summary::marker {
+      content: "";
+    }
+
+    .database-wrap summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .database-wrap summary::before {
+      content: "+";
+      width: 22px;
+      height: 22px;
+      display: inline-grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #184e4a;
+      color: #fff;
+      font-size: 16px;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .database-wrap[open] summary::before {
+      content: "-";
+    }
+
+    .table-tools {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 10px;
+      align-items: end;
+      width: min(760px, 100%);
+    }
+
+    .table-tools label {
+      font-size: 12px;
     }
 
     .search {
-      width: min(360px, 100%);
+      min-width: 180px;
     }
 
     table {
@@ -453,14 +601,14 @@
     }
 
     thead th {
-      background: #f1f4f2;
-      color: #30343a;
+      background: #184e4a;
+      color: #fff;
       font-size: 12px;
       white-space: nowrap;
       position: sticky;
       top: 0;
       z-index: 3;
-      box-shadow: 0 1px 0 var(--line);
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
     }
 
     thead th:first-child {
@@ -499,6 +647,15 @@
       .toolbar {
         align-items: stretch;
         flex-direction: column;
+      }
+
+      .table-tools {
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+      }
+
+      .search {
+        grid-column: 1 / -1;
       }
 
       .controls,
@@ -566,6 +723,13 @@
         <label for="marketSelect">進口市場</label>
         <select id="marketSelect"></select>
       </div>
+      <div class="origin-compare">
+        <div class="origin-compare-head">
+          <label>勾選產區比較</label>
+          <span class="small">可同時勾選多個產區，比較同一市場的產品關稅與原產地條件。</span>
+        </div>
+        <div class="origin-checks" id="originChecks"></div>
+      </div>
     </section>
 
     <section class="main-grid">
@@ -573,43 +737,64 @@
       <aside class="card overview">
         <div class="overview-header">
           <div>
-            <div class="overview-title">同市場產區比較</div>
+            <div class="overview-title">其他產區稅率比較</div>
             <div class="overview-subtitle" id="overviewSubtitle"></div>
           </div>
         </div>
-        <div class="market-list" id="marketList"></div>
         <div class="status-legend" aria-label="燈號圖例">
           <div class="legend-item"><span class="status-dot bad"></span><span>紅色：無特別關稅優惠，不利</span></div>
           <div class="legend-item"><span class="status-dot mid"></span><span>黃色：有部分關稅優惠，但須看條件與品項</span></div>
           <div class="legend-item"><span class="status-dot good"></span><span>綠色：零關稅且原產地寬鬆，有利</span></div>
         </div>
+        <div class="market-list" id="marketList"></div>
       </aside>
     </section>
 
-    <section class="toolbar">
-      <div>
-        <div class="overview-title">產品關稅資料庫</div>
-        <div class="small">可用關鍵字搜尋協定、產區、原產地條件或備註。</div>
-      </div>
-      <div class="search">
-        <label for="keywordInput">搜尋</label>
-        <input id="keywordInput" type="search" placeholder="例如：CPTPP、布、QIZ、加拿大" />
-      </div>
-    </section>
+    <details class="database-wrap" open>
+      <summary>產品關稅資料庫(點擊可展開或收起)</summary>
+      <section class="toolbar">
+        <div>
+          <div class="overview-title">產品關稅資料庫</div>
+          <div class="small">可篩選產區、市場、協定狀態，也可用關鍵字搜尋。</div>
+        </div>
+        <div class="table-tools">
+          <div>
+            <label for="tableOriginFilter">產區</label>
+            <select id="tableOriginFilter"></select>
+          </div>
+          <div>
+            <label for="tableMarketFilter">市場</label>
+            <select id="tableMarketFilter"></select>
+          </div>
+          <div>
+            <label for="agreementFilter">貿易協定</label>
+            <select id="agreementFilter">
+              <option value="all">全部</option>
+              <option value="yes">有貿易協定/優惠</option>
+              <option value="no">無貿易協定/MFN</option>
+            </select>
+          </div>
+          <div class="search">
+            <label for="keywordInput">搜尋</label>
+            <input id="keywordInput" type="search" placeholder="例如：CPTPP、布、QIZ、加拿大" />
+          </div>
+        </div>
+      </section>
 
-    <table>
-      <thead>
-        <tr>
-          <th>進口市場</th>
-          <th>產區</th>
-          <th>產品關稅</th>
-          <th>川普政策性加徵</th>
-          <th>協定</th>
-          <th>原產地條件</th>
-        </tr>
-      </thead>
-      <tbody id="ruleTable"></tbody>
-    </table>
+      <table>
+        <thead>
+          <tr>
+            <th>進口市場</th>
+            <th>產區</th>
+            <th>產品關稅</th>
+            <th>川普政策性加徵</th>
+            <th>協定</th>
+            <th>原產地條件</th>
+          </tr>
+        </thead>
+        <tbody id="ruleTable"></tbody>
+      </table>
+    </details>
   </main>
 
   <script>
@@ -659,18 +844,18 @@
       { market: "加拿大", origin: "印度", rate: "平均 18%", agreement: "MFN", status: "不利", originRule: "目前無 FTA 優惠。", note: "" },
 
       { market: "英國", origin: "越南", rate: "42.5%成衣立即免稅，其餘在2027年逐步降到0%關稅；0%關稅", agreement: "《英國-越南自由貿易協定》（UKVFTA） / 《跨太平洋夥伴全面進步協定》（CPTPP）", status: "有利但需確認條件", originRule: "UKVFTA 布：越南、韓國等；CPTPP 紗起：越南或 CPTPP 國家，不含墨西哥/加拿大。", note: "", details: ["《英國-越南自由貿易協定》（UKVFTA）：42.5%成衣立即免稅，其餘在2027年逐步降到0%關稅。", "《跨太平洋夥伴全面進步協定》（CPTPP）：0%關稅；原產地為紗起，紗須來自越南或 CPTPP 國家，不含墨西哥/加拿大。"] },
-      { market: "英國", origin: "印尼", rate: "多為 9.6%", agreement: "DCTS Standard Preferences", status: "中性/需看品項", originRule: "布：柬埔寨、印尼、越南、菲律賓、緬甸、寮國等。", note: "" },
+      { market: "英國", origin: "印尼", rate: "多為 9.6%", agreement: "DCTS Standard Preferences", status: "中性/需看品項", originRule: "布：柬埔寨、印尼、越南、菲律賓、緬甸、寮國等。", note: "2027年起印尼不適用 DCTS，無關稅優惠，稅率平均12%。" },
       { market: "英國", origin: "柬埔寨", rate: "0%關稅", agreement: "DCTS Comprehensive Preferences", status: "有利", originRule: "不限原料。", note: "" },
       { market: "英國", origin: "薩爾瓦多", rate: "0%關稅", agreement: "《英國-中美洲關係協定》（UK-CAAA）", status: "有利但需確認條件", originRule: "布：中南美洲、加勒比海、墨西哥、歐盟、英國；或不限紗源但需在受惠國製成布。", note: "部分品項有限額。" },
       { market: "英國", origin: "瓜地馬拉", rate: "0%關稅", agreement: "《英國-中美洲關係協定》（UK-CAAA）", status: "有利但需確認條件", originRule: "布：中南美洲、加勒比海、墨西哥、歐盟、英國；或不限紗源但需在受惠國製成布。", note: "部分品項有限額。" },
       { market: "英國", origin: "孟加拉", rate: "0%關稅", agreement: "DCTS Comprehensive Preferences", status: "有利", originRule: "不限原料。", note: "" },
       { market: "英國", origin: "約旦", rate: "平均 12%", agreement: "無關稅優惠", status: "不利", originRule: "目前無成衣優惠。", note: "以 MFN 為主。" },
       { market: "英國", origin: "埃及", rate: "0%關稅", agreement: "《英國-埃及聯合協議》（UK-Egypt Association Agreement）", status: "有利但需確認條件", originRule: "布：歐盟、土耳其、英國、瑞士、冰島、挪威、約旦、以色列；或不限紗源但需在埃及製成布。", note: "需確認材料來源。" },
-      { market: "英國", origin: "斯里蘭卡", rate: "0%關稅", agreement: "DCTS Enhanced Preferences", status: "有利但需確認條件", originRule: "布：孟加拉、不丹、印度、尼泊爾、巴基斯坦、斯里蘭卡。", note: "" },
+      { market: "英國", origin: "斯里蘭卡", rate: "0%關稅", agreement: "DCTS Enhanced Preferences", status: "有利", originRule: "不限原物料。", note: "" },
       { market: "英國", origin: "印度", rate: "多為 9.6%", agreement: "DCTS Standard Preferences / 《印度-英國自由貿易協定》（UK-India Trade Deal）", status: "中性/需看品項", originRule: "布：孟加拉、不丹、印度、尼泊爾、巴基斯坦、斯里蘭卡。", note: "《印度-英國自由貿易協定》（UK-India Trade Deal）25年7月已簽署，尚未正式生效，待關注生效後細則。" },
 
       { market: "澳洲", origin: "越南", rate: "0%關稅；0%關稅；70%產品立即免稅，其餘自2022年起逐步降至0%關稅", agreement: "《跨太平洋夥伴全面進步協定》（CPTPP） / 《東協-澳洲-紐西蘭自由貿易協定》（AANZFTA） / 《區域全面經濟夥伴協定》（RCEP）", status: "有利但需確認條件", originRule: "CPTPP 紗起；RCEP 與 AANZFTA 多為不限原料。", note: "", details: ["《跨太平洋夥伴全面進步協定》（CPTPP）：0%關稅；原產地紗起，紗須來自越南或 CPTPP 國家。", "《東協-澳洲-紐西蘭自由貿易協定》（AANZFTA）：0%關稅；原產地多為不限原料。", "《區域全面經濟夥伴協定》（RCEP）：70%產品立即免稅，其餘自2022年起逐步降至0%關稅；原產地多為不限原料。"] },
-      { market: "澳洲", origin: "印尼", rate: "0%關稅；0%關稅；70%產品立即免稅，其餘自2022年起逐步降至0%關稅", agreement: "《東協-澳洲-紐西蘭自由貿易協定》（AANZFTA） / 《印尼-澳洲全面經濟夥伴協定》（IA-CEPA） / 《區域全面經濟夥伴協定》（RCEP）", status: "有利", originRule: "多為不限原料。", note: "", details: ["《東協-澳洲-紐西蘭自由貿易協定》（AANZFTA）：0%關稅；原產地多為不限原料。", "《印尼-澳洲全面經濟夥伴協定》（IA-CEPA）：0%關稅；原產地多為不限原料。", "《區域全面經濟夥伴協定》（RCEP）：70%產品立即免稅，其餘自2022年起逐步降至0%關稅；原產地多為不限原料。"] },
+      { market: "澳洲", origin: "印尼", rate: "0%關稅；0%關稅；70%產品立即免稅，其餘自2023年起逐步降至0%關稅", agreement: "《東協-澳洲-紐西蘭自由貿易協定》（AANZFTA） / 《印尼-澳洲全面經濟夥伴協定》（IA-CEPA） / 《區域全面經濟夥伴協定》（RCEP）", status: "有利", originRule: "多為不限原料。", note: "", details: ["《東協-澳洲-紐西蘭自由貿易協定》（AANZFTA）：0%關稅；原產地多為不限原料。", "《印尼-澳洲全面經濟夥伴協定》（IA-CEPA）：0%關稅；原產地多為不限原料。", "《區域全面經濟夥伴協定》（RCEP）：70%產品立即免稅，其餘自2023年起逐步降至0%關稅；原產地多為不限原料。"] },
       { market: "澳洲", origin: "柬埔寨", rate: "0%關稅；0%關稅；70%產品立即免稅，其餘自2022年起逐步降至0%關稅", agreement: "最低度開發國家優惠（LDC） / 《東協-澳洲-紐西蘭自由貿易協定》（AANZFTA） / 《區域全面經濟夥伴協定》（RCEP）", status: "有利", originRule: "多為不限原料。", note: "", details: ["最低度開發國家優惠（LDC）：0%關稅；原產地不限原料。", "《東協-澳洲-紐西蘭自由貿易協定》（AANZFTA）：0%關稅；原產地多為不限原料。", "《區域全面經濟夥伴協定》（RCEP）：70%產品立即免稅，其餘自2022年起逐步降至0%關稅；原產地多為不限原料。"] },
       { market: "澳洲", origin: "薩爾瓦多", rate: "平均約 5%", agreement: "發展中國家優惠關稅制度（DCS）", status: "中性/需看品項", originRule: "不限原料。", note: "需查明細稅率。" },
       { market: "澳洲", origin: "瓜地馬拉", rate: "平均約 5%", agreement: "發展中國家優惠關稅制度（DCS）", status: "中性/需看品項", originRule: "不限原料。", note: "需查明細稅率。" },
@@ -706,15 +891,58 @@
     };
     const originSelect = document.querySelector("#originSelect");
     const marketSelect = document.querySelector("#marketSelect");
+    const originChecks = document.querySelector("#originChecks");
     const resultCard = document.querySelector("#resultCard");
     const marketList = document.querySelector("#marketList");
     const overviewSubtitle = document.querySelector("#overviewSubtitle");
     const ruleTable = document.querySelector("#ruleTable");
     const keywordInput = document.querySelector("#keywordInput");
+    const tableOriginFilter = document.querySelector("#tableOriginFilter");
+    const tableMarketFilter = document.querySelector("#tableMarketFilter");
+    const agreementFilter = document.querySelector("#agreementFilter");
 
     function fillSelect(select, values, preferred) {
       select.innerHTML = values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("");
       select.value = preferred && values.includes(preferred) ? preferred : values[0];
+    }
+
+    function fillFilter(select, values, label) {
+      select.innerHTML = [`<option value="all">${escapeHtml(label)}</option>`]
+        .concat(values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`))
+        .join("");
+      select.value = "all";
+    }
+
+    function fillOriginChecks() {
+      originChecks.innerHTML = origins.map((origin) => `
+        <label class="origin-check">
+          <input type="checkbox" value="${escapeHtml(origin)}" ${origin === originSelect.value ? "checked" : ""}>
+          <span>${escapeHtml(origin)}</span>
+        </label>
+      `).join("");
+    }
+
+    function checkedOrigins() {
+      return [...originChecks.querySelectorAll("input:checked")].map((input) => input.value);
+    }
+
+    function setSingleCheckedOrigin(origin) {
+      originChecks.querySelectorAll("input").forEach((input) => {
+        input.checked = input.value === origin;
+      });
+    }
+
+    function normalizeCheckedOrigins() {
+      const checked = checkedOrigins();
+      if (!checked.length) {
+        const fallback = originSelect.value || origins[0];
+        setSingleCheckedOrigin(fallback);
+        return [fallback];
+      }
+      if (!checked.includes(originSelect.value)) {
+        originSelect.value = checked[0];
+      }
+      return checkedOrigins();
     }
 
     function classForStatus(status) {
@@ -753,13 +981,21 @@
       return "10%";
     }
 
-    function trumpAlert(rule) {
+    function trumpAlertHtml(rule) {
       if (rule.market !== "美國") return "";
-      const base = "除了產品本身關稅，仍須外加川普政策性加徵關稅\n10%(目前預估川普暫時性關稅將課徵至2026/7/24)";
-      if (rule.origin === "薩爾瓦多" || rule.origin === "瓜地馬拉") {
-        return `${base}\n若符合《中美洲貿易協定》（CAFTA-DR）原產地規定，成衣可能免除政策性加徵，即 10% → 0%。`;
-      }
+      const extra = rule.origin === "薩爾瓦多" || rule.origin === "瓜地馬拉"
+        ? `<div class="us-alert-extra">若符合《中美洲貿易協定》（CAFTA-DR）原產地規定，成衣可能免除政策性加徵，即 10% → 0%。</div>`
+        : "";
+      const base = `
+        <div class="us-alert-main">除了產品本身關稅，仍須外加川普政策性加徵關稅<span class="us-alert-rate">10%</span></div>
+        <div class="us-alert-date">(目前預估川普暫時性關稅將課徵至2026/7/24)</div>
+        ${extra}
+      `;
       return base;
+    }
+
+    function hasTradeAgreement(rule) {
+      return !/無關稅優惠|MFN/.test(rule.agreement);
     }
 
     function selectedRule() {
@@ -842,17 +1078,10 @@
       `;
     }
 
-    function updateResult() {
-      const rule = selectedRule();
-      if (!rule) {
-        resultCard.innerHTML = `<div class="agreement">查無資料</div>`;
-        return;
-      }
+    function resultContent(rule) {
       const product = productDuty(rule);
-      const trump = trumpTariff(rule);
-      const alert = trumpAlert(rule);
-
-      resultCard.innerHTML = `
+      const alert = trumpAlertHtml(rule);
+      return `
         <div class="result-top">
           ${titleHtml(rule, product)}
         </div>
@@ -876,17 +1105,41 @@
         ` : ""}
         ${alert ? `
         <div class="section">
-          <div class="us-alert">${escapeHtml(alert)}</div>
+          <div class="us-alert">${alert}</div>
         </div>
         ` : ""}
       `;
     }
 
+    function updateResult() {
+      const selectedOrigins = normalizeCheckedOrigins();
+      const selectedRules = selectedOrigins
+        .map((origin) => rules.find((rule) => rule.origin === origin && rule.market === marketSelect.value))
+        .filter(Boolean);
+
+      if (!selectedRules.length) {
+        resultCard.innerHTML = `<div class="agreement">查無資料</div>`;
+        return;
+      }
+
+      if (selectedRules.length === 1) {
+        resultCard.innerHTML = resultContent(selectedRules[0]);
+        return;
+      }
+
+      resultCard.innerHTML = `
+        <div class="compare-results">
+          ${selectedRules.map((rule) => `<section class="compare-card">${resultContent(rule)}</section>`).join("")}
+        </div>
+      `;
+    }
+
     function updateMarketOverview() {
       const rows = rules.filter((rule) => rule.market === marketSelect.value);
+      const selectedOrigins = checkedOrigins();
       overviewSubtitle.textContent = `${marketSelect.value}市場：各產區相對優勢`;
       marketList.innerHTML = rows.map((rule) => `
-        <button class="market-row ${rule.origin === originSelect.value ? "active" : ""}" data-origin="${escapeHtml(rule.origin)}" type="button">
+        <button class="market-row ${selectedOrigins.includes(rule.origin) ? "active" : ""}" data-origin="${escapeHtml(rule.origin)}" type="button">
           <div class="origin-name">${escapeHtml(rule.origin)}</div>
           <div class="market-summary">${escapeHtml(rule.rate)}｜${escapeHtml(rule.agreement)}</div>
           <span class="status-dot ${classForStatus(rule.status)}" aria-label="${escapeHtml(rule.status)}"></span>
@@ -896,6 +1149,7 @@
       marketList.querySelectorAll(".market-row").forEach((row) => {
         row.addEventListener("click", () => {
           originSelect.value = row.dataset.origin;
+          setSingleCheckedOrigin(row.dataset.origin);
           render();
         });
       });
@@ -905,7 +1159,12 @@
       const keyword = keywordInput.value.trim().toLowerCase();
       const filtered = rules.filter((rule) => {
         const haystack = `${rule.market} ${rule.origin} ${rule.rate} ${rule.agreement} ${rule.originRule} ${rule.note} ${rule.status} ${(rule.details || []).join(" ")}`.toLowerCase();
-        return !keyword || haystack.includes(keyword);
+        const keywordMatch = !keyword || haystack.includes(keyword);
+        const originMatch = tableOriginFilter.value === "all" || rule.origin === tableOriginFilter.value;
+        const marketMatch = tableMarketFilter.value === "all" || rule.market === tableMarketFilter.value;
+        const agreementMatch = agreementFilter.value === "all" ||
+          (agreementFilter.value === "yes" ? hasTradeAgreement(rule) : !hasTradeAgreement(rule));
+        return keywordMatch && originMatch && marketMatch && agreementMatch;
       });
 
       ruleTable.innerHTML = filtered.map((rule) => `
@@ -943,12 +1202,22 @@
 
     fillSelect(originSelect, origins, "約旦");
     fillSelect(marketSelect, markets, "美國");
+    fillOriginChecks();
+    fillFilter(tableOriginFilter, origins, "全部產區");
+    fillFilter(tableMarketFilter, markets, "全部市場");
     if (window.matchMedia("(max-width: 820px)").matches) {
       document.querySelector("#dutyPrimer").open = false;
     }
-    originSelect.addEventListener("change", render);
+    originSelect.addEventListener("change", () => {
+      setSingleCheckedOrigin(originSelect.value);
+      render();
+    });
     marketSelect.addEventListener("change", render);
+    originChecks.addEventListener("change", render);
     keywordInput.addEventListener("input", updateTable);
+    tableOriginFilter.addEventListener("change", updateTable);
+    tableMarketFilter.addEventListener("change", updateTable);
+    agreementFilter.addEventListener("change", updateTable);
     render();
   </script>
 </body>
